@@ -1,0 +1,13 @@
+from datetime import datetime
+
+# Original date string (with both date and time)
+date_string = "2024-10-13 14:25:37"
+
+# Convert the string to a datetime object
+date_object = datetime.strptime(date_string, '%Y-%m-%d %H:%M:%S')
+
+# Reformat to only the date (YYYY-MM-DD)
+formatted_date = date_object.strftime('%Y-%m-%d')
+
+print(f"Original datetime string: {date_string}")
+print(f"Formatted date: {formatted_date}")
