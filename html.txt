@@ -1,0 +1,77 @@
+# Sample list of objects (list of dictionaries)
+data = [
+    {"name": "Alice", "age": 30, "city": "New York"},
+    {"name": "Bob", "age": 25, "city": "Los Angeles"},
+    {"name": "Charlie", "age": 35, "city": "Chicago"},
+]
+
+# Create an HTML table with styling and center alignment
+html = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        table {
+            margin: 50px auto;
+            border-collapse: collapse;
+            width: 60%;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 18px;
+        }
+        td {
+            font-size: 16px;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Pretty HTML Table</h1>
+<table>
+    <thead>
+        <tr>
+"""
+
+# Add the headers (keys from the first object)
+for key in data[0].keys():
+    html += f"<th>{key.capitalize()}</th>"
+html += "</tr></thead>\n"
+
+# Add the table rows (data from each object)
+html += "<tbody>\n"
+for obj in data:
+    html += "<tr>"
+    for value in obj.values():
+        html += f"<td>{value}</td>"
+    html += "</tr>\n"
+html += "</tbody>\n"
+
+# Close the table and HTML structure
+html += """
+</table>
+</body>
+</html>
+"""
+
+# Now `html` contains the full HTML structure with styling
+print(html)
