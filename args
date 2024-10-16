@@ -1,0 +1,54 @@
+import argparse
+import json
+
+class Formatter:
+    # Public method to format the data as HTML
+    def to_html(self, data):
+        html_content = "<html><body><table border='1'>"
+        html_content += "<tr><th>Key</th><th>Value</th></tr>"
+        for key, value in data.items():
+            html_content += self._format_row(key, value)  # Using the helper method
+        html_content += "</table></body></html>"
+        return html_content
+    
+    # Public method to format the data as JSON
+    def to_json(self, data, indent=4):
+        return json.dumps(data, indent=indent)
+
+    # Helper method (prefixed with an underscore)
+    def _format_row(self, key, value):
+        return f"<tr><td>{key}</td><td>{value}</td></tr>"
+
+def main():
+    # Setup argument parser
+    parser = argparse.ArgumentParser(description="Format data as HTML or JSON.")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--to-html", action="store_true", help="Format data as HTML")
+    group.add_argument("--to-json", action="store_true", help="Format data as JSON")
+    parser.add_argument("-o", "--output", type=str, required=True, help="Output filename")
+    parser.add_argument("--data", type=str, help="Data in key=value format (e.g., key1=value1,key2=value2)", required=True)
+    
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Convert the input data string to a dictionary
+    data = {k: v for k, v in (item.split("=") for item in args.data.split(","))}
+
+    # Initialize the formatter
+    formatter = Formatter()
+    output = ""
+
+    # Format the data based on the arguments
+    if args.to_html:
+        output = formatter.to_html(data)
+    elif args.to_json:
+        output = formatter.to_json(data)
+
+    # Write the output to the specified file
+    with open(args.output, 'w') as f:
+        f.write(output)
+
+    print(f"Output written to {args.output}")
+
+if __name__ == "__main__":
+    main()
