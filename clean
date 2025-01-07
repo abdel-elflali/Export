@@ -1,0 +1,56 @@
+import configparser
+import requests
+import sys
+
+def load_config(file_path):
+    """Load configuration from the octopus.conf file."""
+    config = configparser.ConfigParser()
+    config.read(file_path)
+    try:
+        spn = config['config']['spn']
+        proxy_type = config['config']['proxyType']
+        return spn, proxy_type
+    except KeyError as e:
+        print(f"Missing key in configuration file: {e}")
+        sys.exit(1)
+
+def delete_objects_from_azure(spn, object_ids):
+    """Delete objects from Azure based on the list of object IDs."""
+    base_url = "https://management.azure.com"
+    headers = {
+        "Authorization": f"Bearer {spn}",
+        "Content-Type": "application/json"
+    }
+    
+    for obj_id in object_ids:
+        url = f"{base_url}/{obj_id}?api-version=2023-01-01"
+        print(f"Deleting object with ID: {obj_id}")
+        try:
+            response = requests.delete(url, headers=headers)
+            if response.status_code == 204:
+                print(f"Object {obj_id} deleted successfully.")
+            else:
+                print(f"Failed to delete object {obj_id}. Status Code: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            print(f"Error deleting object {obj_id}: {e}")
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python delete_objects.py <path_to_object_ids_file>")
+        sys.exit(1)
+    
+    # Load configuration
+    spn, proxy_type = load_config("octopus.conf")
+    print(f"Loaded configuration: SPN={spn}, ProxyType={proxy_type}")
+
+    # Read object IDs from the input file
+    object_ids_file = sys.argv[1]
+    try:
+        with open(object_ids_file, "r") as file:
+            object_ids = [line.strip() for line in file if line.strip()]
+    except FileNotFoundError:
+        print(f"Object IDs file not found: {object_ids_file}")
+        sys.exit(1)
+
+    # Delete objects from Azure
+    delete_objects_from_azure(spn, object_ids)
