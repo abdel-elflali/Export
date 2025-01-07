@@ -1,0 +1,59 @@
+import configparser
+import sys
+from azure.identity import ClientSecretCredential
+from azure.mgmt.resource import ResourceManagementClient
+
+def load_config(file_path):
+    """Load configuration from the octopus.conf file."""
+    config = configparser.ConfigParser()
+    config.read(file_path)
+    try:
+        client_id = config['config']['client_id']
+        client_secret = config['config']['client_secret']
+        tenant_id = config['config']['tenant_id']
+        proxy_type = config['config']['proxyType']
+        return client_id, client_secret, tenant_id, proxy_type
+    except KeyError as e:
+        print(f"Missing key in configuration file: {e}")
+        sys.exit(1)
+
+def delete_resources(credentials, subscription_id, resource_ids):
+    """Delete resources in Azure."""
+    resource_client = ResourceManagementClient(credentials, subscription_id)
+
+    for resource_id in resource_ids:
+        try:
+            print(f"Deleting resource: {resource_id}")
+            resource_client.resources.begin_delete_by_id(resource_id, api_version="2021-04-01").wait()
+            print(f"Resource {resource_id} deleted successfully.")
+        except Exception as e:
+            print(f"Error deleting resource {resource_id}: {e}")
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Usage: python delete_objects_with_sdk.py <subscription_id> <path_to_object_ids_file>")
+        sys.exit(1)
+    
+    # Load configuration
+    client_id, client_secret, tenant_id, proxy_type = load_config("octopus.conf")
+    print(f"Loaded configuration: ClientID={client_id}, ProxyType={proxy_type}")
+
+    # Authenticate with Azure
+    try:
+        credentials = ClientSecretCredential(tenant_id, client_id, client_secret)
+    except Exception as e:
+        print(f"Error authenticating with Azure: {e}")
+        sys.exit(1)
+
+    # Read subscription ID and object IDs
+    subscription_id = sys.argv[1]
+    object_ids_file = sys.argv[2]
+    try:
+        with open(object_ids_file, "r") as file:
+            resource_ids = [line.strip() for line in file if line.strip()]
+    except FileNotFoundError:
+        print(f"Object IDs file not found: {object_ids_file}")
+        sys.exit(1)
+
+    # Delete resources
+    delete_resources(credentials, subscription_id, resource_ids)
